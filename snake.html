@@ -1,0 +1,137 @@
+<html>
+    <head>
+        <style>
+            canvas{ border: solid 1px #666; background: #f5f5f5;}
+        </style>
+    </head>
+    <body onload="snake();">
+        <canvas id="canvas"></canvas>
+
+        <script>
+
+            function snake() {
+                var direction = 'Right';
+
+                var opt = {w: 15, h: 15, x: 150, y: 150, ctx: null};
+
+                opt.width = opt.w * 40;
+                opt.height = opt.w * 25;
+
+                var line = [[opt.x, opt.y]];
+
+                var directions = {
+                    'Left': [-1, 0],
+                    'Right': [1, 0],
+                    'Up': [0, -1],
+                    'Down': [0, 1],
+                };
+
+                function ctx() {
+                    if (opt.ctx) {
+                        return opt.ctx;
+                    }
+
+                    var canvas = document.getElementById('canvas');
+                    if (!canvas.getContext) {
+                        return;
+                    }
+                    canvas.width = opt.width;
+                    canvas.height = opt.height;
+                    canvas.focus();
+                    return opt.ctx = canvas.getContext('2d');
+
+                }
+
+                function check_xy(x, y) {
+                    if (x > opt.width - opt.w) {
+                        x = 0;
+                    }
+                    if (y > opt.height - opt.h) {
+                        y = 0;
+                    }
+                    if (x < 0) {
+                        x = opt.width - opt.w;
+                    }
+                    if (y < 0) {
+                        y = opt.height - opt.h;
+                    }
+                    return [x, y];
+                }
+
+                function rect(x, y) {
+                    [x, y] = check_xy(x, y);
+                    ctx().fillStyle = "#c00";
+                    ctx().fillRect(x, y, opt.w, opt.h);
+                    return [x, y];
+                }
+
+                function clear(x, y) {
+                    ctx().clearRect(x, y, opt.w, opt.h);
+                }
+
+                function next_step() {
+                    return check_xy(opt.x + opt.w * directions[direction][0], opt.y + opt.h * directions[direction][1]);
+                }
+
+
+                function rabbit() {
+                    var x, y;
+                    [x, y] = check_xy(Math.floor(opt.width * Math.random() / opt.w) * opt.w,
+                            Math.floor(opt.height * Math.random() / opt.h) * opt.h);
+
+                    if (check_collision(x, y)) {
+                        return rabbit();
+                    }
+                    ctx().fillStyle = "#0C0";
+                    ctx().fillRect(x, y, opt.w, opt.h);
+                    return [x, y];
+                }
+
+                function check_collision(x, y) {
+                    var i;
+                    for (i = 0; i < line.length; i++) {
+                        if (x == line[i][0] && y == line[i][1]) {
+                            return i+1;
+                        }
+                    }
+                    return false;
+                }
+
+
+                function start() {
+                    setInterval(function () {
+                        [opt.x, opt.y] = next_step();
+                        var s = check_collision(opt.x, opt.y);
+                        line.push(rect(opt.x, opt.y));
+                        //console.log(s);
+                        if (opt.x == rabbit_pos[0] && opt.y == rabbit_pos[1]) {
+                            rabbit_pos = rabbit();
+                        } else if(s) {
+                            for (var i = 0; i < s; i++) {
+                                clear(line[i][0], line[i][1]);
+                            }
+                           line.splice(0,s);
+                        }else{
+                            clear(line[0][0], line[0][1]);
+                            line.shift();
+                        }
+                    }, 120);
+                }
+
+                window.onkeydown = function (e) {
+                    var key = e.key.replace('Arrow', '');
+                    if (!directions[key]) {
+                        return;
+                    }
+                    direction = key;
+                }
+
+                var rabbit_pos = rabbit();
+                start();
+            }
+
+
+
+        </script>
+    </body>
+</html>
